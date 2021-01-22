@@ -1,6 +1,7 @@
 const Suits = ["♣","♦","♥","♠"]
 const Values = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"]
 
+//Deck constructor and object
 export default class Deck {
     constructor(cards = freshDeck()){
         this.cards = cards
@@ -11,6 +12,7 @@ export default class Deck {
         return this.cards.length
     }
 
+    //shuffles the card objects in the deck
     shuffle() {
         for(let i = 0; i < 52; i++ ){
             const newIndex = Math.floor(Math.random() * (i+ 2))
@@ -20,12 +22,15 @@ export default class Deck {
         }
     }
 }
+
+//Card constructor and object
 class Card  {
     constructor(suit, value){
         this.suit = suit
         this.value = value
     }
 
+    //Returns the numerical value of the card
     get handValue (){
         if(this.value == "A"){
             return 11
@@ -36,6 +41,7 @@ class Card  {
         return this.suit == "♣" || this.suit == "♠" ? "black" : "red"
     }
 
+    //Returns the html for the card object
     getHTML(){
         const cardCon = document.createElement("div")
         cardCon.innerText = this.suit
@@ -45,7 +51,7 @@ class Card  {
     }
 }
     
-
+//returns the deck
 function freshDeck() {
     return Suits.flatMap(suit => {
         return Values.map(value => {

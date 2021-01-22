@@ -1,5 +1,6 @@
 import Deck from "./deck.js"
 
+// Variables gathered from html elements
 const dealerdeck1 = document.querySelector(".dealer-deck1")
 const dealerdeck2 = document.querySelector(".dealer-deck2")
 const dealerdeck3 = document.querySelector(".dealer-deck3")
@@ -20,6 +21,7 @@ const betInput = document.querySelector(".bet")
 const dealerInfo = document.querySelector(".textDealer")
 const stackInfoValue = document.createElement("text")
 
+//variables needed for functionality
 let playerhand = []
 let dealerhand = []
 var cardcount = 4
@@ -30,10 +32,11 @@ let deck = new Deck()
 let playerChips = 100
 let betSize = 0
 let turnCount = 0
-let double = false
+let double =false
 StartGame()
 
-
+/* Initial function that assigns the hand values to both the player and dealer, appends all cards loaded to each relevant cardslot
+    , adds functions to the relevant buttons and changes the chip stack size if the player starts a new hand with a new bet */
 function StartGame(){
     deck = new Deck()
     deck.shuffle()
@@ -61,7 +64,7 @@ function StartGame(){
 
     playerdeck1.appendChild(deck.cards[2].getHTML())
     playerdeck2.appendChild(deck.cards[3].getHTML())
-    setBetSize(document.getElementsByTagName("input")[0].value)
+    SetBetSize(document.getElementsByTagName("input")[0].value)
     hitButton.addEventListener("click", Hit)
     doubButton.addEventListener("click", Double)
     standButton.addEventListener("click", RevealDealer)
@@ -70,21 +73,22 @@ function StartGame(){
         const stackInfoFin = document.createElement("text")
         stackInfo.removeChild(stackInfo.firstChild)
         stackInfoFin.textContent = ("Chips: $" + (parseInt(playerChips) - parseInt(betSize)))
-        setStackSize(-(betSize))
+        SetStackSize(-(betSize))
         stackInfo.appendChild(stackInfoFin)
         }
     }
 
-
+/* Processes the bet, gives the player a new card, appends the new card to the specified card slot
+    and then calls the CheckBust() function*/
 function Hit(){
-    setBetSize(document.getElementsByTagName("input")[0].value)
-    if((parseInt(betSize) == 0 || parseInt(betSize)>0 ) && parseInt(betSize) <= playerChips){
-    if(playing == true){
+    SetBetSize(document.getElementsByTagName("input")[0].value)
+    if((parseInt(betSize) == 0 || parseInt(betSize)>0 ) && parseInt(betSize) <= playerChips && playerCardPos == 3){
+    if(playing == true && win == null){
 
         if(playerCardPos == 3 && turnCount == 0){
                 stackInfoValue.textContent = ("Chips: $" + (parseInt(playerChips) - parseInt(betSize)))
                 stackInfo.appendChild(stackInfoValue)
-                setStackSize(-(betSize))
+                SetStackSize(-(betSize))
 
             }
         if(playerCardPos == 3){
@@ -102,31 +106,51 @@ function Hit(){
         CheckBust()
         UpdatePlayer()
         }
-    else if (win == true || win == false){
+    else if (win == true || win == false && (parseInt(betSize) == 0 || parseInt(betSize)>0)  && parseInt(betSize) <= playerChips ){
         NewDeal()
     }
-
-}
     }
+    else if((parseInt(betSize) == 0 || parseInt(betSize)>0 ) && playerCardPos > 3){
+        if(playing == true && win == null){
+
+            if(playerCardPos == 4){
+                playerdeck4.appendChild(deck.cards[cardcount].getHTML())
+            }
+            else{
+                playerdeck5.appendChild(deck.cards[cardcount].getHTML())
+            }
+            playerhand.push(deck.cards[cardcount].handValue)
+            cardcount ++
+            playerCardPos ++
+            CheckBust()
+            UpdatePlayer()
+            }
+        else if (win == true || win == false && (parseInt(betSize) == 0 || parseInt(betSize)>0)  && parseInt(betSize) <= playerChips){
+            NewDeal()
+        }
+    }
+}
 
 
+/* Processes the bet for a double, gives the player a new card, appends the new card to the relevant card slot
+    and then calls the CheckBust() and RevealDealer() function*/
 function Double(){
     double = true
-    setBetSize((document.getElementsByTagName("input")[0].value)*2)
+    SetBetSize((document.getElementsByTagName("input")[0].value)*2)
     if((parseInt(betSize) == 0 || parseInt(betSize)>0 ) && parseInt(betSize) <= playerChips){
     if(playing == true){
         if(turnCount == 0){
             if(playerCardPos == 3){
                 stackInfoValue.textContent = ("Chips: $" + (parseInt(playerChips) - parseInt(betSize)))
                 stackInfo.appendChild(stackInfoValue)
-                setStackSize(-(betSize))
+                SetStackSize(-(betSize))
             }
             else{
                 console.log("heree")
                 stackInfoValue.textContent = ("Chips: $" + (parseInt(playerChips) - (parseInt(betSize)*2)))
                 stackInfo.appendChild(stackInfoValue)
-                setStackSize(-(betSize/2))
-                changeStackDisplay()
+                SetStackSize(-(betSize/2))
+                ChangeStackDisplay()
             }
         }
         else{
@@ -134,8 +158,8 @@ function Double(){
                 stackInfoValue.textContent = ("Chips: $" + (parseInt(playerChips) - (parseInt(betSize)*2)))
                 stackInfo.removeChild(stackInfo.firstChild)
                 stackInfo.appendChild(stackInfoValue)
-                setStackSize(-(betSize/2))
-                changeStackDisplay()
+                SetStackSize(-(betSize/2))
+                ChangeStackDisplay()
         }
         if(playerCardPos == 3){
             playerdeck3.appendChild(deck.cards[cardcount].getHTML())
@@ -156,6 +180,8 @@ function Double(){
 }
 }
 
+/* Checks if the player hand is above 21, if it is and contains an ace then the ace is changed to a 1, if it does not contain an ace
+    then the player busts */
 function CheckBust(){
     if (HandTotal(true) > 21 && playerhand.includes(11)){
         playerhand[playerhand.indexOf(11)] = 1
@@ -172,13 +198,14 @@ function CheckBust(){
         chipsInfoFin.textContent = ("Player Busts") 
         resultInfo.appendChild(chipsInfoFin)
         win = false
-        changeStackDisplay(win)
+        ChangeStackDisplay(win)
     }
     else{
 
     }
 }
 
+/* shows the dealer's hidden second card and then calls the DrawDealer() function */
 function RevealDealer(){
     if(playing == true){
     const dealerInfoHand = document.createElement("text")
@@ -195,6 +222,7 @@ function RevealDealer(){
     
 }
 
+/* calculates the player or dealer's hand value based off whether paramter player is set to true or false */
 function HandTotal(player){
     var x = 0
     if(player == true){
@@ -213,6 +241,7 @@ function HandTotal(player){
     return parseInt(x)
 }
 
+// updates the players hand total on screen
 function UpdatePlayer(){
     const playerInfoHand = document.createElement("text")
     playerInfo.removeChild(playerInfo.children[0])
@@ -220,7 +249,7 @@ function UpdatePlayer(){
     playerInfo.appendChild(playerInfoHand)
 }
 
-
+//updates the dealer's handtotal on screen
 function UpdateDealer(){
     const dealerInfoHand = document.createElement("text")
     dealerInfo.removeChild(dealerInfo.children[0])
@@ -228,13 +257,14 @@ function UpdateDealer(){
     dealerInfo.appendChild(dealerInfoHand)
 }
 
+//Checks for win or loss conditions
 function CheckWin(){
     const resultInfoFin = document.createElement("text")
     if(HandTotal(false) > 21 ||HandTotal(true) > HandTotal(false)){
         resultInfoFin.textContent = ("PLAYER WINS!") 
         resultInfo.appendChild(resultInfoFin)
         win = true
-        changeStackDisplay(win)
+        ChangeStackDisplay(win)
 
     }
     else if(HandTotal(true) < HandTotal(false)){
@@ -242,7 +272,7 @@ function CheckWin(){
         resultInfo.appendChild(resultInfoFin)
 
         win = false
-        changeStackDisplay(win)
+        ChangeStackDisplay(win)
      
         }
     else{
@@ -250,12 +280,14 @@ function CheckWin(){
         resultInfo.appendChild(resultInfoFin)
 
         win = true
-        changeStackDisplay(win)
+        ChangeStackDisplay(win)
        
     }
 
 }
 
+/* Draws cards for the dealer until the dealer hand value reaches 17 or over
+    and then calls CheckWin() */
 function DrawDealer(){
     if(deck.cards[0].handValue + deck.cards[1].handValue < 17){
         let cardslotPos = 3
@@ -284,6 +316,8 @@ function DrawDealer(){
         CheckWin()
 }
 
+/* removes all relevant elemants on the screen and resets all variable values before calling a new StartGame()
+     which will reassign all the new elements */
 function NewDeal(){
 
     dealerdeck1.removeChild(dealerdeck1.children[0])
@@ -318,27 +352,31 @@ function NewDeal(){
     playing = true
     turnCount ++
     double =false
+    win = null
     StartGame()
     
 }
 
 
-
-function setBetSize(value){
+//sets the betSize variable
+function SetBetSize(value){
     betSize = value
 }
-function setStackSize(value){
+
+//sets the player stack size variable
+function SetStackSize(value){
     playerChips = (parseInt(playerChips) + parseInt(value))
 }
 
-function changeStack(win){
+/* alters the player stack size vaiable based off whether the player won, lost or pushed */
+function ChangeStack(win){
     if(double = false){
     if(win == true){
         if(HandTotal(true) == HandTotal(false)){
-            setStackSize(betSize)
+            SetStackSize(betSize)
         }
         else{
-            setStackSize(parseInt(betSize)*2)
+            SetStackSize(parseInt(betSize)*2)
         }
     }
     else{
@@ -347,10 +385,10 @@ function changeStack(win){
     else{
         if(win == true){
             if(HandTotal(true) == HandTotal(false)){
-                setStackSize(parseInt(betSize))
+                SetStackSize(parseInt(betSize))
             }
             else{
-                setStackSize(parseInt(betSize)*2)
+                SetStackSize(parseInt(betSize)*2)
             }
         }
         else{
@@ -360,10 +398,11 @@ function changeStack(win){
     }
 }
 
-function changeStackDisplay(win){
+/* Alters the player stack size using the changeStack() function to define the new value */
+function ChangeStackDisplay(win){
     
     if(betSize>0){
-    changeStack(win)
+    ChangeStack(win)
     const stackInfoFin = document.createElement("text")
     stackInfo.removeChild(stackInfo.firstChild)
     stackInfoFin.textContent = ("Chips: $" + playerChips)
